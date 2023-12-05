@@ -87,6 +87,18 @@ def horoscope_sign(message):
         bot.register_next_step_handler(message, horoscope_sign)
         cnt = 1
     if cnt == 0:
+        markup = types.InlineKeyboardMarkup()
+        markup.add(types.InlineKeyboardButton('Да', callback_data='yes'))
+        markup.add(types.InlineKeyboardButton('Нет', callback_data='no'))
+        bot.send_message(message.chat.id, 'Хочешь подписаться на ежедневную рассылку?', reply_markup=markup)
+    if cnt == 0:
         bot.register_next_step_handler(message, choose_option)
-
+#Функция для подписки на гороскоп
+@bot.callback_query_handler(func=lambda callback: True)
+def subscription(callback):
+    if callback.data == 'yes':
+        bot.send_message(callback.message.chat.id, 'Подписка успешно оформлена')
+    else:
+        bot.send_message(callback.message.chat.id, 'Очень жаль, что ты не хочешь оформить подписку. Надеемся, ты передумаешь')
+    bot.delete_message(callback.message.chat.id, callback.message.message_id)
 bot.polling(none_stop=True)

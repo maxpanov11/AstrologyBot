@@ -33,7 +33,7 @@ def choose_option(message):
         bot.send_message(message.chat.id, 'Извини, эта функция появится позже')
         bot.register_next_step_handler(message, choose_option)
     #Гороскоп
-    elif message.text.lower() == 'гороскоп' or message.text.lower() == '/horoscope' or message.text.lower() == 'horoscope'  or message.text.lower() == 'гороскоп на день':
+    elif message.text.lower() == 'гороскоп' or message.text.lower() == 'horoscope' or message.text.lower() == '/daily_horoscope'  or message.text.lower() == 'гороскоп на день' or message.text.lower() == 'daily_horoscope':
         bot.send_message(message.chat.id, 'Какой знак гороскопа тебя интереcует?')
         bot.register_next_step_handler(message, horoscope_sign)
     #Чепуха

@@ -43,7 +43,7 @@ def choose_option(message):
 #Функция для натальной карты
 def natal_chart(message):
     pass
-#Функция для гороскопа
+#Функция для совместимости
 def compatibility(message):
     pass
 #Функция для парсинга и отправки гороскопа

@@ -22,11 +22,12 @@ def newsletter():
     cursor.execute('SELECT * FROM Users')
     users = cursor.fetchall()
     for user_id in users:
-        print(user_id)
         try:
             bot.send_message(user_id[0], horoscopes[user_id[1]])
         except:
             pass
+    connection.commit()
+    connection.close()
 #Функция для парсинга гороскопов
 def horoscope_parcing(horoscopes):
     link = 'https://retrofm.ru/goroskop'
@@ -61,9 +62,13 @@ def start(message):
         bot.send_message(message.chat.id, f'Привет, {message.from_user.first_name}! Что бы ты хотел узнать?', reply_markup=markup)
         bot.register_next_step_handler(message, choose_option)
 #Обработка запроса
+@bot.message_handler()
 def choose_option(message):
+    #Пользователь уже начинал пользоваться ботом, но потом очистил историю
+    if message.text.lower() == '/start':
+        start(message)
     #Помощь
-    if message.text.lower() == '/help' or message.text.lower() == 'help' or message.text.lower() == 'помощь' or message.text.lower() == 'инфо' or message.text.lower() == 'информация':
+    elif message.text.lower() == '/help' or message.text.lower() == 'help' or message.text.lower() == 'помощь' or message.text.lower() == 'инфо' or message.text.lower() == 'информация':
         bot.send_message(message.chat.id, 'С помощью этого бота ты можешь узнать свою натальную карту, совместимость или гороскоп. Для этого воспользуйся панелью управления снизу. Надеемся, наш бот тебе понравится:)')
         bot.register_next_step_handler(message, choose_option)
     #Натальная карта
@@ -146,12 +151,15 @@ def horoscope_sign(message):
         bot.register_next_step_handler(message, choose_option)
 #Функция отписки от рассылки
 def unsubscribe(message):
-    bot.send_message(message.chat.id, 'Подписка отменена')
-    connection = sqlite3.connect('my_database5.db')
-    cursor = connection.cursor()
-    cursor.execute("DELETE FROM Users WHERE id=?", (message.chat.id,))
-    connection.commit()
-    connection.close()
+    if message.text.lower() == 'да' or message.text.lower() == 'yes':
+        bot.send_message(message.chat.id, 'Подписка отменена')
+        connection = sqlite3.connect('my_database5.db')
+        cursor = connection.cursor()
+        cursor.execute("DELETE FROM Users WHERE id=?", (message.chat.id,))
+        connection.commit()
+        connection.close() 
+    else:
+        bot.send_message(message.chat.id, 'Рад, что ты решил не отписываться')
     bot.register_next_step_handler(message, choose_option)
 #Функция оформления подписки
 @bot.callback_query_handler(func=lambda callback: True)
@@ -170,7 +178,7 @@ def subscription(callback):
         cursor.execute('INSERT INTO Users (id, sign) VALUES (?, ?)', (user_id, sign_of_user))
         connection.commit()
         connection.close()
-        bot.send_message(callback.message.chat.id, 'Подписка успешно оформлена')
+        bot.send_message(callback.message.chat.id, 'Подписка успешно оформлена. Если захочешь отписаться, используй команду /unsubscribe')
     else:
         bot.send_message(callback.message.chat.id, 'Очень жаль, что ты не хочешь оформить подписку. Надеемся, ты передумаешь')
     bot.delete_message(callback.message.chat.id, callback.message.message_id)

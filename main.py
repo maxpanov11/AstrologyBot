@@ -112,18 +112,18 @@ def natal_chart(message):
 # Функция для совместимости
 def compatibility(message):
     mapa = {
-        "Овен": 0,
-        "Телец": 1,
-        "Близнецы": 2,
-        "Рак": 3,
-        "Лев": 4,
-        "Дева": 5,
-        "Весы": 6,
-        "Скорпион": 7,
-        "Стрелец": 8,
-        "Козерог": 9,
-        "Водолей": 10,
-        "Рыбы": 11,
+        "овен": 0,
+        "телец": 1,
+        "близнецы": 2,
+        "рак": 3,
+        "лев": 4,
+        "дева": 5,
+        "весы": 6,
+        "скорпион": 7,
+        "стрелец": 8,
+        "козерог": 9,
+        "водолей": 10,
+        "рыбы": 11,
     }
     mass = [[91, 81, 72, 81, 97, 84, 83, 76, 92, 82, 82, 91],
             [72, 87, 73, 83, 88, 92, 92, 98, 81, 89, 83, 91],
@@ -140,18 +140,21 @@ def compatibility(message):
             ]
 
     index = message.text.find(" ")
-    first_sign = message.text[:index]
-    second_sign = message.text[index + 1:]
+    first_sign = message.text[:index].lower()
+    second_sign = message.text[index + 1:].lower()
     i = 0
     j = 0
     try:
         i = mapa[first_sign]
         j = mapa[second_sign]
     except KeyError:
-        bot.send_message(message.chat.id, 'Такого знака зодиака нет')
-    result = f'{(mass[i][j])} %'
-    bot.send_message(message.chat.id, result)
-    return 0
+        bot.send_message(message.chat.id, 'Такого знака зодиака нет, попробуй еще раз')
+        bot.register_next_step_handler(message, horoscope_sign)
+    else:
+        result = f'{(mass[i][j])} %'
+        bot.send_message(message.chat.id, result)
+    bot.register_next_step_handler(message, choose_option)
+    
 
 # Функция для отправки гороскопа
 def horoscope_sign(message):

@@ -32,16 +32,16 @@ def newsletter():
 
 
 # Функция для парсинга гороскопов
-# def horoscope_parcing(horoscopes):
-#     link = 'https://retrofm.ru/goroskop'
-#     response = requests.get(link).text
-#     soup = BeautifulSoup(response, 'lxml')
-#     block = soup.find('div', id='all_wrapper')
-#     horoscope_block = block.find('div', class_='horoscope_list')
-#     horoscope_list = horoscope_block.find_all('div', class_='text_box')
-#     for predict in horoscope_list:
-#         horoscopes.append(predict.text)
-#
+def horoscope_parcing(horoscopes):
+    link = 'https://retrofm.ru/goroskop'
+    response = requests.get(link).text
+    soup = BeautifulSoup(response, 'lxml')
+    block = soup.find('div', id='all_wrapper')
+    horoscope_block = block.find('div', class_='horoscope_list')
+    horoscope_list = horoscope_block.find_all('div', class_='text_box')
+    for predict in horoscope_list:
+        horoscopes.append(predict.text)
+
 
 # Разделение потоков, чтобы парсинг, рассылка и основной функционал бота могли работать вместе
 def timee():
@@ -51,8 +51,8 @@ def timee():
 
 
 horoscopes = []
-# horoscope_parcing(horoscopes)
-# schedule.every(10).seconds.do(horoscope_parcing, horoscopes=[])
+horoscope_parcing(horoscopes)
+schedule.every(10).seconds.do(horoscope_parcing, horoscopes=[])
 schedule.every(10).seconds.do(newsletter)
 threading.Thread(target=timee).start()
 
@@ -162,9 +162,8 @@ def compatibility(message):
     except KeyError:
         bot.send_message(message.chat.id, 'Такого знака зодиака нет, попробуй еще раз')
         bot.register_next_step_handler(message, horoscope_sign)
-    else:
-        result = f'{(mass[i][j])} %'
-        bot.send_message(message.chat.id, result)
+        return 0
+
     result = f'Ваша совместимость: {(mass[i][j])} %'
     bot.send_message(message.chat.id, result)
     bot.send_message(message.chat.id, f'{first_sign}: \n')

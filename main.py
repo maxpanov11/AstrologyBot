@@ -32,15 +32,16 @@ def newsletter():
 
 
 # Функция для парсинга гороскопов
-def horoscope_parcing(horoscopes):
-    link = 'https://retrofm.ru/goroskop'
-    response = requests.get(link).text
-    soup = BeautifulSoup(response, 'lxml')
-    block = soup.find('div', id='all_wrapper')
-    horoscope_block = block.find('div', class_='horoscope_list')
-    horoscope_list = horoscope_block.find_all('div', class_='text_box')
-    for predict in horoscope_list:
-        horoscopes.append(predict.text)
+# def horoscope_parcing(horoscopes):
+#     link = 'https://retrofm.ru/goroskop'
+#     response = requests.get(link).text
+#     soup = BeautifulSoup(response, 'lxml')
+#     block = soup.find('div', id='all_wrapper')
+#     horoscope_block = block.find('div', class_='horoscope_list')
+#     horoscope_list = horoscope_block.find_all('div', class_='text_box')
+#     for predict in horoscope_list:
+#         horoscopes.append(predict.text)
+#
 
 # Разделение потоков, чтобы парсинг, рассылка и основной функционал бота могли работать вместе
 def timee():
@@ -50,8 +51,8 @@ def timee():
 
 
 horoscopes = []
-horoscope_parcing(horoscopes)
-schedule.every(10).seconds.do(horoscope_parcing, horoscopes=[])
+# horoscope_parcing(horoscopes)
+# schedule.every(10).seconds.do(horoscope_parcing, horoscopes=[])
 schedule.every(10).seconds.do(newsletter)
 threading.Thread(target=timee).start()
 
@@ -104,10 +105,21 @@ def choose_option(message):
                          'К сожалению, я не умею выполнять эту команду:( Чтобы узнать, что я могу, введи команду /help')
         bot.register_next_step_handler(message, choose_option)
 
+
 # Функция для натальной карты
 def natal_chart(message):
     pass
 
+#парсинг совместимости
+def compatibility_parcing(num):
+    URL = 'https://www.nur.kz/esoterics/astrology/1824471-lubov-znakov-zodiaka-kak-lubit-kazdyj-znak/'
+    r = requests.get(URL)
+    soup = BeautifulSoup(r.text, 'html.parser')
+    collection = soup.find_all('p', class_="align-left formatted-body__paragraph")[1:-1]
+    merged_collection = []
+    for i in range(1, len(collection), 2):
+        merged_collection.append(collection[i - 1].text + collection[i].text)
+    return f'{merged_collection[num]}'
 
 # Функция для совместимости
 def compatibility(message):
@@ -153,8 +165,15 @@ def compatibility(message):
     else:
         result = f'{(mass[i][j])} %'
         bot.send_message(message.chat.id, result)
+    result = f'Ваша совместимость: {(mass[i][j])} %'
+    bot.send_message(message.chat.id, result)
+    bot.send_message(message.chat.id, f'{first_sign}: \n')
+    bot.send_message(message.chat.id, compatibility_parcing(i))
+    bot.send_message(message.chat.id, f'{second_sign}: \n')
+    bot.send_message(message.chat.id, compatibility_parcing(j))
     bot.register_next_step_handler(message, choose_option)
-    
+
+    return 0
 
 # Функция для отправки гороскопа
 def horoscope_sign(message):

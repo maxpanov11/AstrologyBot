@@ -161,18 +161,16 @@ def compatibility(message):
         j = mapa[second_sign]
     except KeyError:
         bot.send_message(message.chat.id, 'Такого знака зодиака нет, попробуй еще раз')
-        bot.register_next_step_handler(message, horoscope_sign)
-        return 0
+        bot.register_next_step_handler(message, compatibility)
+    else:
+        result = f'Ваша совместимость: {(mass[i][j])} %'
+        bot.send_message(message.chat.id, result)
+        bot.send_message(message.chat.id, f'{first_sign}: \n')
+        bot.send_message(message.chat.id, compatibility_parcing(i))
+        bot.send_message(message.chat.id, f'{second_sign}: \n')
+        bot.send_message(message.chat.id, compatibility_parcing(j))
+        bot.register_next_step_handler(message, choose_option)
 
-    result = f'Ваша совместимость: {(mass[i][j])} %'
-    bot.send_message(message.chat.id, result)
-    bot.send_message(message.chat.id, f'{first_sign}: \n')
-    bot.send_message(message.chat.id, compatibility_parcing(i))
-    bot.send_message(message.chat.id, f'{second_sign}: \n')
-    bot.send_message(message.chat.id, compatibility_parcing(j))
-    bot.register_next_step_handler(message, choose_option)
-
-    return 0
 
 # Функция для отправки гороскопа
 def horoscope_sign(message):

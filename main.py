@@ -54,6 +54,8 @@ def timee():
 
 horoscopes = []
 horoscope_parcing(horoscopes)
+# Пока что парсинг и рассылка выполняется каждые 10 секунд, это сделано для простоты отладки функции подписки. 
+# Интервал легко поменять на раз в день, немного подкорректировав две следующие функции
 schedule.every(10).seconds.do(horoscope_parcing, horoscopes=[])
 schedule.every(10).seconds.do(newsletter)
 threading.Thread(target=timee).start()
@@ -145,6 +147,7 @@ def natal_chart(message):
         f = open("GFG-1.html", "rb")
 
         bot.send_document(chat_id=message.chat.id, document=f)
+        bot.register_next_step_handler(message, choose_option)
 
     else:
         bot.reply_to(message, "Не удалось составить натальную карту. Пожалуйста, попробуйте снова.")

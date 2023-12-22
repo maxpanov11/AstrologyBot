@@ -47,8 +47,22 @@ def compatibility(message):
         i = mapa[first_sign]
         j = mapa[second_sign]
     except KeyError:
-        bot.send_message(message.chat.id, 'Такой пары знаков зодиака нет, попробуй еще раз')
-        bot.register_next_step_handler(message, compatibility)
+        # Пробуем исправить ошибки в неверно введенном знаке
+        if index != -1:
+            corrected_sign1 = mistakes_corrector(first_sign)
+            corrected_sign2 = mistakes_corrector(second_sign)
+            if corrected_sign1 != 0 and corrected_sign2 != 0:
+                markup = types.InlineKeyboardMarkup()
+                markup.add(types.InlineKeyboardButton('Да', callback_data=f'coryes2 {corrected_sign1} {corrected_sign2}'))
+                markup.add(types.InlineKeyboardButton('Нет', callback_data='corno2'))
+                bot.send_message(message.chat.id, f'Похоже, ты ошибся в знаках зодиака. Возможно ты имел в виду: {corrected_sign1} {corrected_sign2}', reply_markup=markup) 
+
+            else:
+                bot.send_message(message.chat.id, 'Такой пары знаков зодиака нет, попробуй еще раз')
+                bot.register_next_step_handler(message, compatibility)
+        else:
+            bot.send_message(message.chat.id, 'Такой пары знаков зодиака нет, попробуй еще раз')
+            bot.register_next_step_handler(message, compatibility)
     else:
         result = f'Ваша совместимость: {(mass[i][j])} %'
         bot.send_message(message.chat.id, result)

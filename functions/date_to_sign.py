@@ -5,6 +5,7 @@ def date_to_sign(message, k=0, two_signs=''):
              [22, 4, 5], [23, 5, 6], [23, 6, 7], [23, 7, 8], [22, 8, 9], [21, 9, 10]]
     separators = ['.', ',', ':', '/', ';', ' ']
     mistake = 0
+    # Обработка ввода, чтобы даже если пользователь ввел дату в не совсем верном формате, мы бы все равно смогли его понять
     if len(message.text) < 3 or len(message.text) > 5:
         bot.send_message(message.chat.id, 'Похоже, ты ввел дату в неправильном формате, попробуй еще раз')
         mistake = 1
@@ -60,6 +61,7 @@ def date_to_sign(message, k=0, two_signs=''):
     else:
         bot.send_message(message.chat.id, 'Похоже, ты ввел дату в неправильном формате, попробуй еще раз')
         mistake = 1
+    # Часть непосредственно отвечающая за перевод из даты в знак 
     if mistake == 0:
         sign=signs[(day<=dates[month-1][0])*dates[month-1][1]+(day>dates[month-1][0])*dates[month-1][2]-1]
         if k != 2:

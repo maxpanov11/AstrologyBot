@@ -1,5 +1,3 @@
-# Это файл с проектом целиком, добавлен просто для удобства
-
 import datetime
 import json
 import telebot
@@ -277,6 +275,26 @@ def mistakes_corrector(word):
         else:
             return 0
 
+
+# Функция для процессинга функции исправления ошибок
+@bot.callback_query_handler(func=lambda callback: callback.data[0:3] == 'cor')
+def mistakes_processing(callback):
+    bot.delete_message(callback.message.chat.id, callback.message.message_id)
+    if callback.data[3:6] == 'yes':
+        if callback.data[6] == '1':
+            callback.message.text = callback.data.split()[1]
+            horoscope_sign(callback.message)
+        else:
+            callback.message.text = callback.data[8:]
+            compatibility(callback.message)
+    else:
+        if callback.data[5] == '1':
+            mes = bot.send_message(callback.message.chat.id, 'Пожалуйста, введи знак зодика еще раз')
+            bot.register_next_step_handler(mes, horoscope_sign)
+        else:
+            mes = bot.send_message(callback.message.chat.id, 'Пожалуйста, введи пару знаков зодика еще раз')
+            bot.register_next_step_handler(mes, compatibility)
+
 # Функция для натальной карты
 def natal_chart(message):
     try:
@@ -413,26 +431,7 @@ def horoscope_sign(message):
         bot.send_message(message.chat.id, 'Хочешь подписаться на ежедневную рассылку?', reply_markup=markup)
     if cnt == 0:
         bot.register_next_step_handler(message, choose_option)
-
-@bot.callback_query_handler(func=lambda callback: callback.data[0:3] == 'cor')
-def mistakes_processing(callback):
-    bot.delete_message(callback.message.chat.id, callback.message.message_id)
-    if callback.data[3:6] == 'yes':
-        if callback.data[6] == '1':
-            callback.message.text = callback.data.split()[1]
-            horoscope_sign(callback.message)
-        else:
-            callback.message.text = callback.data[8:]
-            compatibility(callback.message)
-    else:
-        if callback.data[5] == '1':
-            mes = bot.send_message(callback.message.chat.id, 'Пожалуйста, введи знак зодика еще раз')
-            bot.register_next_step_handler(mes, horoscope_sign)
-        else:
-            mes = bot.send_message(callback.message.chat.id, 'Пожалуйста, введи пару знаков зодика еще раз')
-            bot.register_next_step_handler(mes, compatibility)
         
-
         
 # Функция отписки от рассылки
 @bot.callback_query_handler(func=lambda callback: callback.data[0:3] == 'uns')

@@ -99,7 +99,8 @@ def choose_option(message):
     # Помощь
     elif message.text.lower() == '/help' or message.text.lower() == 'help' or message.text.lower() == 'помощь' or message.text.lower() == 'инфо' or message.text.lower() == 'информация':
         bot.send_message(message.chat.id,
-                         'С помощью этого бота ты можешь узнать свою натальную карту, совместимость или гороскоп. Для этого воспользуйся панелью управления снизу. Надеемся, наш бот тебе понравится:)')
+                         '''С помощью этого бота ты можешь узнать свою натальную карту, совместимость или гороскоп. \n\nДля этого воспользуйся панелью управления снизу. \n\nПолный список команд можно увидеть,
+нажав на кнопку "Меню" слева. \n\nНадеемся, наш бот тебе понравится:)''')
         bot.register_next_step_handler(message, choose_option)
     # Натальная карта
     elif message.text.lower() == '/natal_chart' or message.text.lower() == 'натальная карта' or message.text.lower() == 'natal chart':
@@ -247,6 +248,33 @@ def processing_of_sign(callback):
             bot.register_next_step_handler(mes, date_to_sign, 2)
     bot.delete_message(callback.message.chat.id, callback.message.message_id)
 
+
+#Функция обработок ошибок в написании знака
+def mistakes_corrector(word):
+    if len(word) > 10 or len(word) < 2:
+        return 0
+    else:
+        signs = ['овен', 'телец', 'близнецы', 'рак', 'лев', 'дева', 'весы', 'скорпион', 'стрелец', 'козерог', 'водолей', 'рыбы']
+        dist = []
+        for sign in signs:
+            if abs(len(sign)-len(word)) <= 2:
+                leven = [[0] * (len(word)+1) for i in range(len(sign)+1)]
+                for i in range(1, (len(word)+1)):
+                    leven[0][i] = i
+                for j in range(1, (len(sign)+1)):
+                        leven[j][0] = j
+                for i in range(1, len(sign)+1):
+                    for j in range(1, len(word)+1):
+                        leven[i][j] = min(leven[i-1][j]+1, leven[i][j-1]+1, leven[i-1][j-1] + (word[j-1]!=sign[i-1]))
+                if leven[-1][-1] == 1:
+                    return sign
+                else:
+                    dist.append([leven[-1][-1], sign])
+        if min(dist)[0] <= 2:
+            return min(dist)[1]
+        else:
+            return 0
+
 # Функция для натальной карты
 def natal_chart(message):
     try:
@@ -330,8 +358,21 @@ def compatibility(message):
         i = mapa[first_sign]
         j = mapa[second_sign]
     except KeyError:
-        bot.send_message(message.chat.id, 'Такой пары знаков зодиака нет, попробуй еще раз')
-        bot.register_next_step_handler(message, compatibility)
+        if index != -1:
+            corrected_sign1 = mistakes_corrector(first_sign)
+            corrected_sign2 = mistakes_corrector(second_sign)
+            if corrected_sign1 != 0 and corrected_sign2 != 0:
+                markup = types.InlineKeyboardMarkup()
+                markup.add(types.InlineKeyboardButton('Да', callback_data=f'coryes2 {corrected_sign1} {corrected_sign2}'))
+                markup.add(types.InlineKeyboardButton('Нет', callback_data='corno2'))
+                bot.send_message(message.chat.id, f'Похоже, ты ошибся в знаках зодиака. Возможно ты имел в виду: {corrected_sign1} {corrected_sign2}', reply_markup=markup) 
+
+            else:
+                bot.send_message(message.chat.id, 'Такой пары знаков зодиака нет, попробуй еще раз')
+                bot.register_next_step_handler(message, compatibility)
+        else:
+            bot.send_message(message.chat.id, 'Такой пары знаков зодиака нет, попробуй еще раз')
+            bot.register_next_step_handler(message, compatibility)
     else:
         result = f'Ваша совместимость: {(mass[i][j])} %'
         bot.send_message(message.chat.id, result)
@@ -351,9 +392,17 @@ def horoscope_sign(message):
     if sign_of_user != 0:
         bot.send_message(message.chat.id, horoscopes[sign_of_user])
     else:
-        bot.send_message(message.chat.id, 'Такого знака нет:( Попробуй еще раз')
-        bot.register_next_step_handler(message, horoscope_sign)
-        cnt = 1
+        corrected_sign = mistakes_corrector(message.text.lower())
+        if corrected_sign == 0:
+            bot.send_message(message.chat.id, 'Такого знака нет:( Попробуй еще раз')
+            bot.register_next_step_handler(message, horoscope_sign)
+            cnt = 1
+        else:
+            markup = types.InlineKeyboardMarkup()
+            markup.add(types.InlineKeyboardButton('Да', callback_data=f'coryes1 {corrected_sign}'))
+            markup.add(types.InlineKeyboardButton('Нет', callback_data='corno1'))
+            bot.send_message(message.chat.id, f'Похоже, ты ошибся в знаке зодиака. Возможно ты имел в виду: {corrected_sign}', reply_markup=markup)
+            cnt = 1
     # Предложение подписаться на рассылку
     if cnt == 0:
         markup = types.InlineKeyboardMarkup()
@@ -363,7 +412,26 @@ def horoscope_sign(message):
     if cnt == 0:
         bot.register_next_step_handler(message, choose_option)
 
+@bot.callback_query_handler(func=lambda callback: callback.data[0:3] == 'cor')
+def mistakes_processing(callback):
+    bot.delete_message(callback.message.chat.id, callback.message.message_id)
+    if callback.data[3:6] == 'yes':
+        if callback.data[6] == '1':
+            callback.message.text = callback.data.split()[1]
+            horoscope_sign(callback.message)
+        else:
+            callback.message.text = callback.data[8:]
+            compatibility(callback.message)
+    else:
+        if callback.data[5] == '1':
+            mes = bot.send_message(callback.message.chat.id, 'Пожалуйста, введи знак зодика еще раз')
+            bot.register_next_step_handler(mes, horoscope_sign)
+        else:
+            mes = bot.send_message(callback.message.chat.id, 'Пожалуйста, введи пару знаков зодика еще раз')
+            bot.register_next_step_handler(mes, compatibility)
+        
 
+        
 # Функция отписки от рассылки
 @bot.callback_query_handler(func=lambda callback: callback.data[0:3] == 'uns')
 def unsubscribe(callback):

@@ -1,3 +1,5 @@
+# Это файл с проектом целиком, добавлен просто для удобства
+
 import datetime
 import json
 import telebot
